@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<all>
+    <!-- core-site.xml -->
+    <configuration>
+        <property>
+            <name>fs.default.name</name>
+            <value>hdfs://${namenode}:9000</value>
+            <description>
+                not sure if port should go here.
+                Deprecated. Use (fs.defaultFS) property instead.
+            </description>
+        </property>
+        
+        <property>
+            <name>fs.defaultFS</name>
+            <value>hdfs://%s:9000</value>
+        </property>
+        
+        <property>
+            <name>hadoop.tmp.dir</name>
+            <value>/node_scratch/hadoop-${user.name}</value>
+            <description></description>
+        </property>
+        
+    </configuration>
+    
+    <!-- hdfs-site.xml -->
+    <configuration>
+        <property>
+            <name>dfs.namenode.name.dir</name>
+            <value>file:///node_scratch/hdfs/name</value>
+            <final>true</final>
+            <description></description>
+        </property>
+        <property>
+            <name>dfs.datanode.data.dir</name>
+            <value>file:///node_scratch/hdfs/data</value>
+            <final>true</final>
+            <description></description>
+        </property>
+        <property>
+            <name>dfs.namenode.checkpoint.dir</name>
+            <value>file:///node_scratch/tmp/namesecondary</value>
+            <final>true</final>
+        </property>
+        <property>
+          <name>dfs.replication</name>
+          <value>1</value>
+        </property>
+    </configuration>
+    
+    <!-- mapred-site.xml -->
+    <configuration>
+        <property>
+            <name>mapreduce.framework.name</name>
+            <value>yarn</value>
+            <description>use the yarn framework instead of local</description>
+        </property>
+        <property>
+            <name>mapred.child.java.opts</name>
+            <value>-Xmx2048M</value>
+            <description>Java heap size, should be smaller than the 2 below</description>
+            <!-- Not marked as final so jobs can include JVM debugging options -->
+        </property>
+        <property>
+            <name>mapreduce.map.memory.mb</name>
+            <value>2816</value>
+            <description>
+                The physical amount of memory to be allocated for a map job.
+                Note this also takes into account java vm overhead 
+            </description>
+        </property>
+        <property>
+            <name>mapreduce.reduce.memory.mb</name>
+            <value>5632</value>
+            <description>The physical amount of memory to be allocated for a reduce job</description>
+        </property>
+    </configuration>
+    <!-- yarn-site.xml -->
+    <configuration>
+        <property>
+            <name>yarn.resourcemanager.hostname</name>
+            <value>${resourcemanager}</value>
+            <description>
+                Location of the resource manager. 
+                Use this instead of address, as this is used in other values.
+            </description>
+        </property>
+        <property><name>yarn.nodemanager.local-dirs</name>
+            <value>/node_scratch/tmp/nm-local-dir</value>
+            <final>true</final>
+            <description>which local disks to store intermediate data on</description>
+        </property>
+        <property>
+            <name>yarn.nodemanager.aux-services</name>
+            <value>mapreduce_shuffle</value>
+            <description>Enable shufflers to send map output to reduce tasks</description>
+        </property>
+        <property>
+            <name>yarn.nodemanager.resource.memory-mb</name>
+            <value>56320</value>
+            <description>
+                Memory per node, total memory minus space for system, 
+                nodemanager and datanode requirements
+            </description>
+        </property>
+        
+        <property>
+          <name>yarn.nodemanager.resource.cpu-vcores</name>
+          <value>20</value>
+          <description>Number of cores available per node</description>
+        </property>
+    </configuration>
+</all>
