@@ -128,7 +128,7 @@ class Hadoop2Bootstrap(object):
         </property>
         <property>
           <name>dfs.replication</name>
-          <value>1</value>
+          <value>3</value>
         </property>
         <property>
             <name>dfs.webhdfs.enabled</name>
@@ -183,14 +183,14 @@ class Hadoop2Bootstrap(object):
         
             <property>
                 <name>mapred.child.java.opts</name>
-                <value>-Xmx2048m</value>
+                <value>-Xmx1024m</value>
                 <description>Java heap size, should be smaller than the 2 below</description>
                 <!-- Not marked as final so jobs can include JVM debugging options -->
             </property>
         
             <property>
                 <name>mapreduce.map.memory.mb</name>
-                <value>2816</value>
+                <value>1280</value>
                 <description>
                     The physical amount of memory to be allocated for a map job.
                     Note this also takes into account java vm overhead 
@@ -199,11 +199,16 @@ class Hadoop2Bootstrap(object):
         
             <property>
                 <name>mapreduce.reduce.memory.mb</name>
-                <value>5632</value>
+                <value>1280</value>
                 <description>The physical amount of memory to be allocated for a reduce job</description>
             </property>
             
-        
+            <property>
+                <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+                <value>0.05</value>
+                <description>percentage of mappers that must be complete before starting the first reducers</description>
+            </property>
+            
         </configuration>
         """
         

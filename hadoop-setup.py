@@ -77,7 +77,13 @@ class ClusterStarter:
         template += "#PBS -l walltime=%s\n" % (walltime)
         template += "#PBS -l pmem=2gb"
         # template += "#PBS -q %s\n"%s(queue)
-        template += "#PBS -l nodes=%s:ppn=20\n" % (numnodes)
+        # nodes
+        if self.qosdebug:
+            template += "#PBS -l nodes=%s:ppn=20\n"%(numnodes)
+        else:
+            template += "#PBS -l nodes=%s:ppn=20:ivybridge\n"%(numnodes)
+            template += "#PBS -l feature=mem64\n"
+    
         template += "#PBS -M jonnydaenen@gmail.com\n"
         if self.qosdebug:
             template += "#PBS -l qos=debugging\n"
