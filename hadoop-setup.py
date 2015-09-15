@@ -137,7 +137,7 @@ class ClusterStarter:
         """
         
         # create folders
-        print("creating work and script dir...")
+        print "creating work and script dir..."
         
         workpath = os.path.join(self.working_dir, "work")
         scriptpath = os.path.join(self.working_dir, "scripts")
@@ -146,7 +146,7 @@ class ClusterStarter:
                 os.makedirs(p)
         
         # create pbs script
-        print("creating PBS script ... ")
+        print "creating PBS script ... "
         pbs_script = self.create_pbs_script()
         
         # put script in temp file
@@ -159,17 +159,17 @@ class ClusterStarter:
         f = open(pbs_path, "w")
         f.write(pbs_script)
         f.close()
-        print("Job script is stored in:", pbs_path)
+        print "Job script is stored in:", pbs_path
         
         # copy bootstrap file
         self.copy_bootstrapper()
 
         # submit job using qsub
-        print("submitting job...")
+        print "submitting job..."
         output = subprocess.check_output(['qsub', pbs_path])
         self.id = output[:output.find(".")]
         
-        print("job submitted with id: ", self.id)
+        print "job submitted with id: ", self.id
         
         # print settings only when the cluster was setup correctly
         if self.wait_for_job():
@@ -298,8 +298,8 @@ class ClusterStarter:
                                                   os.path.join(self.working_dir, INIT_FILE))  # script dir is in name
         print
         
-        print("To clean up:")
-        print("bash -l %s" % os.path.join(self.working_dir, CLEAN_FILE))  # script dir is in name
+        print "To clean up:"
+        print "bash -l %s" % os.path.join(self.working_dir, CLEAN_FILE)  # script dir is in name
         print
         
         # manual mode command :
@@ -463,7 +463,7 @@ def main():
     # print args
     # print args.accumulate(args.integers)
     
-    print(reduce(lambda x, y: x + "\n\t" + y + ": " + str(vars(args)[y]), vars(args), "Settings:"))
+    print reduce(lambda x, y: x + "\n\t" + y + ": " + str(vars(args)[y]), vars(args), "Settings:")
     
     # get parameters
     params = vars(args)
