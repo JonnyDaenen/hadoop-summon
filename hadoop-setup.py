@@ -30,7 +30,7 @@ class ClusterStarter:
         suffix = d.strftime("%y.%m.%d-%H.%M")
         self.working_dir = os.path.join(options["workdir"], self.jobname+"-"+suffix)
         
-        self.script = options['script']--
+        self.script = options['script']
         
         # script presence means auto-mode
         self.auto = False
