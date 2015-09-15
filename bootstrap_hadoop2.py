@@ -70,7 +70,7 @@ class Hadoop2Bootstrap(object):
             # create remote dirs
             self.create_dirs()
         except:
-            print "error creating dirs..."
+            print("error creating dirs...")
             pass
     
 
@@ -424,7 +424,7 @@ class Hadoop2Bootstrap(object):
         
     
     def get_pbs_allocated_nodes(self):
-        print "Init PBS"
+        print("Init PBS")
         pbs_node_file = os.environ.get("PBS_NODEFILE")    
         if pbs_node_file == None:
             return ["localhost"]
@@ -437,7 +437,7 @@ class Hadoop2Bootstrap(object):
 
 
     def get_sge_allocated_nodes(self):
-        print "Init SGE"
+        print("Init SGE")
         sge_node_file = os.environ.get("PE_HOSTFILE")    
         if sge_node_file == None:
             return ["localhost"]
@@ -639,7 +639,7 @@ if __name__ == "__main__" :
         
         # download hadoop
         download_destination = os.path.join(WORKING_DIRECTORY,"hadoop.tar.gz")
-        if os.path.exists(download_destination)==False:
+        if not os.path.exists(download_destination):
             logging.info("Downloading  %s to %s"%(HADOOP_DOWNLOAD_URL, download_destination))
             opener = urllib.FancyURLopener({})
             opener.retrieve(HADOOP_DOWNLOAD_URL, download_destination);
@@ -674,9 +674,9 @@ if __name__ == "__main__" :
     f.close()
     
     # done, sleep until signal is caught
-    print "Finished launching of Hadoop Cluster - Sleeping now"
+    print("Finished launching of Hadoop Cluster - Sleeping now")
 
-    while STOP==False:
+    while not STOP:
         logging.debug("stop: " + str(STOP))
         time.sleep(10)
             

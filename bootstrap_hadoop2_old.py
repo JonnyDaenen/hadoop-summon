@@ -644,7 +644,7 @@ if __name__ == "__main__" :
         
         # download hadoop
         download_destination = os.path.join(WORKING_DIRECTORY,"hadoop.tar.gz")
-        if os.path.exists(download_destination)==False:
+        if not os.path.exists(download_destination):
             logging.info("Downloading  %s to %s"%(HADOOP_DOWNLOAD_URL, download_destination))
             opener = urllib.FancyURLopener({})
             opener.retrieve(HADOOP_DOWNLOAD_URL, download_destination);
@@ -681,7 +681,7 @@ if __name__ == "__main__" :
     # done, sleep until signal is caught
     print "Finished launching of Hadoop Cluster - Sleeping now"
 
-    while STOP==False:
+    while not STOP:
         logging.debug("stop: " + str(STOP))
         time.sleep(10)
             
