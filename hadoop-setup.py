@@ -222,6 +222,10 @@ class ClusterStarter:
                     sys.stdout.write("|")
                 else:
                     sys.stdout.write(".")
+                    
+                if i % 60 == 0:
+                    sys.stdout.write("(%s min)\n"%(i/60))
+                    
                 sys.stdout.flush()
             
             try:
