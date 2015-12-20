@@ -15,8 +15,14 @@ INIT_FILE = "scripts/hadoop-init.sh"
 RUN_FILE = "scripts/hadoop-run.sh"
 CLEAN_FILE = "scripts/hadoop-cleanup.sh"
 
-VERSION = "2.6.0"
+VERSION = "2.6.2"
 
+
+class JobDisappeared(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 class ClusterStarter:
 
@@ -40,6 +46,7 @@ class ClusterStarter:
             print "corrected script path:", self.script
 
         self.qosdebug = options["dqos"]
+        self.haswell = options["haswell"]
         
         return
 
@@ -75,11 +82,15 @@ class ClusterStarter:
         template += "#PBS -o %s\n" % (outfile)
         template += "#PBS -e %s\n" % (errfile)
         template += "#PBS -l walltime=%s\n" % (walltime)
-        template += "#PBS -l pmem=2gb"
+        template += "#PBS -l pmem=2gb\n"
+        template += "#PBS -A lp_h_gumbo\n" # TODO set account as parameter
         # template += "#PBS -q %s\n"%s(queue)
         # nodes
         if self.qosdebug:
             template += "#PBS -l nodes=%s:ppn=20\n"%(numnodes)
+        elif self.haswell:
+            template += "#PBS -l nodes=%s:ppn=24:haswell\n"%(numnodes)
+            template += "#PBS -l feature=mem64\n"
         else:
             template += "#PBS -l nodes=%s:ppn=20:ivybridge\n"%(numnodes)
             template += "#PBS -l feature=mem64\n"
@@ -160,6 +171,8 @@ class ClusterStarter:
         f.write(pbs_script)
         f.close()
         print "Job script is stored in:", pbs_path
+    
+        
         
         # copy bootstrap file
         self.copy_bootstrapper()
@@ -171,10 +184,17 @@ class ClusterStarter:
         
         print "job submitted with id: ", self.id
         
-        # print settings only when the cluster was setup correctly
-        if self.wait_for_job():
-            self.export_cluster_settings()
-
+        try:
+            # print settings only when the cluster was setup correctly
+            if self.wait_for_job():
+                self.export_cluster_settings()
+                
+        except JobDisappeared as error:
+            print "reason:", error
+            print "job disappeared!"
+            self.cancel_job()
+            
+        
     def wait_for_job(self):
         """
         Waits for allocation, then for start of hadoop cluster.
@@ -195,11 +215,13 @@ class ClusterStarter:
         # this is done by the bootstrap script
         startedpath = os.path.join(self.working_dir, "work/started")
 
+        
         print "Initializing Hadoop cluster"
         started = self.wait_for_path(startedpath)
         print "Hadoop clusted initialized (wait a few minutes to make sure it's entirely up and running)."
         
         return started
+        
 
     def wait_for_path(self, path, print_est_start_time=False):
         """
@@ -209,9 +231,11 @@ class ClusterStarter:
         """
 
         found = False
+        jobsgone = 10 # how many times to wait for a missing job
         # wait for the directory to appear
         # or for the job to disappear from the queue
-        i = 1
+        i = 0
+        sleep = 5
         while True:
             
             # print est. start time, or dots
@@ -246,11 +270,15 @@ class ClusterStarter:
                 found = True
                 break
             if not self.is_queued(self.id):
-                print "ERROR: Job not found in queue system!"
-                break
+                jobgone -= 1
+                print "Job is not present in queue system, %s more checks remaining"%(str(jobgone))
+                if jobgone <= 0:
+                    raise JobDisappeared("ERROR: Job not found in queue system!")
+                    # print "ERROR: Job not found in queue system!"
+                    # break
 
-            i += 1
-            time.sleep(1)
+            i += sleep
+            time.sleep(sleep)
             
         # add newline to end of progress dots
         if not print_est_start_time:
@@ -421,6 +449,13 @@ class ClusterStarter:
             
         return hosts
 
+    def cancel_job(self, pbs_id):
+        
+        try:
+            subprocess.check_output(["qdel", self.id])
+        except:
+            pass
+        
     def is_queued(self, pbs_id):
         
         try:
@@ -460,9 +495,13 @@ def main():
     parser.add_argument("-j", "--jobname", action='store', default="hadoop-beta",
                         help="the name of the job")
     parser.add_argument("-s", "--script", action='store',
-                        help="the script to exectute (auto-mode)", default=None)
+                        help="the script to execute (auto-mode)", default=None)
     parser.add_argument("--dqos", action='store_true', default=False,
                         help="request debug job qos")
+    parser.add_argument("--haswell", action='store_true', default=False,
+                        help="request haswell nodes")
+    parser.add_argument("--bootstrapper", action='store', required=False, default="bootstrap_hadoop2.py",
+                        help="the bootstrap file to be used")
     args = parser.parse_args()
     # print args
     # print args.accumulate(args.integers)
@@ -471,6 +510,9 @@ def main():
     
     # get parameters
     params = vars(args)
+    
+    global BOOTSTRAPPER
+    BOOTSTRAPPER = params['bootstrapper']
     
     # start cluster
     cs = ClusterStarter(params)

@@ -94,6 +94,12 @@ class Hadoop2Bootstrap(object):
             <description></description>
         </property>
         
+        <property>
+            <name>io.file.buffer.size</name>
+            <value>131072</value>
+            <description></description>
+        </property>
+        
     </configuration>""" % (hostname, hostname)
 
     def get_core_site_xml_old(self, hostname):
@@ -202,17 +208,55 @@ class Hadoop2Bootstrap(object):
             </property>
             
             <property>
-                <name>mapreduce.job.reduce.slowstart.completedmaps</name>
-                <value>0.05</value>
-                <description>percentage of mappers that must be complete before starting the first reducers</description>
+                <name>mapreduce.task.io.sort.mb</name>
+                <value>512</value>
+                <description>size of the map-side sort buffer</description>
             </property>
             
+            <property>
+                <name>mapreduce.reduce.merge.inmem.threshold</name>
+                <value>0</value>
+                <description>only write reduce data to disk when memory is full</description>
+            </property>
+            
+            <property>
+                <name>mapreduce.reduce.input.buffer.percent</name>
+                <value>0.5</value>
+                <description>50pct of heap can be used to keep data in memory</description>
+            </property>
+            
+            <property>
+                <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+                <value>0.5</value>
+                <description>percentage of mappers that must be complete before starting the first reducers</description>
+            </property>
+
+            <!--
+            <property>
+                <name>mapreduce.map.sort.spill.percent</name>
+                <value>0.9</value>
+            </property>
+            -->
             
             <!--
             <property>
-              <name> mapreduce.tasktracker.tasks.sleeptimebeforesigkill</name>
-              <value>30000</value>
-              <description></description>
+                <name>mapreduce.task.io.sort.factor</name>
+                <value>64</value>
+            </property>
+            -->
+
+            <!--
+            <property>
+                <name>mapreduce.map.output.compress</name>
+                <value>true</value>
+                <description>this slows down the mapper by factor 1.5</description>
+            </property>
+            -->
+            <!--
+            <property>
+                <name>mapreduce.reduce.shuffle.parallelcopies</name>
+                <value>10</value>
+                <description>default = 5</description>
             </property>
             -->
         </configuration>
@@ -241,9 +285,6 @@ class Hadoop2Bootstrap(object):
            <value>5632</value>
            <description></description>
          </property>
-         
-         
-         
          
          <property>
            <name>mapreduce.map.java.opts</name>
@@ -325,21 +366,6 @@ class Hadoop2Bootstrap(object):
                   <value>false</value>
                   <description>???</description>
                 </property>
-                
-                <!--
-                <property>
-                  <name>yarn.nodemanager.sleep-delay-before-sigkill.ms</name>
-                  <value>30000</value>
-                  <description>No. of ms to wait between sending a SIGTERM and SIGKILL to a container</description>
-                </property>
-                
-                <property>
-                  <name>yarn.nodemanager.process-kill-wait.ms</name>
-                  <value>30000</value>
-                  <description>Max time to wait for a process to come up when trying to cleanup a container</description>
-                </property>
-                -->
-                
                 
                 
             </configuration>
