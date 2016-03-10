@@ -14,6 +14,7 @@ BOOTSTRAPPER = "bootstrap_hadoop2.py"
 INIT_FILE = "scripts/hadoop-init.sh"
 RUN_FILE = "scripts/hadoop-run.sh"
 CLEAN_FILE = "scripts/hadoop-cleanup.sh"
+CLEAN_FILE = "scripts/clearnodes.sh"
 
 VERSION = "2.6.2"
 
@@ -119,7 +120,7 @@ class ClusterStarter:
         template += "# execute scripts\n"
         args = reduce(lambda x, y: str(x)+" " + str(y), arguments)
         template += "echo '%s %s' >> log.txt\n" % (executable, args)
-        template += "%s %s\n" % (executable, args)
+        template += "%s %s > bootstrap.out 2> bootstrap.err\n" % (executable, args)
     
         return template
 
@@ -177,6 +178,8 @@ class ClusterStarter:
         # copy bootstrap file
         self.copy_bootstrapper()
 
+        self.copy_control_files()
+
         # submit job using qsub
         print "submitting job..."
         output = subprocess.check_output(['qsub', pbs_path])
@@ -231,7 +234,7 @@ class ClusterStarter:
         """
 
         found = False
-        jobsgone = 10 # how many times to wait for a missing job
+        jobgone = 10 # how many times to wait for a missing job
         # wait for the directory to appear
         # or for the job to disappear from the queue
         i = 0
@@ -285,6 +288,15 @@ class ClusterStarter:
             print ""
         
         return found
+        
+        
+    def copy_control_files(self):
+        # copy hadoop control scripts
+        files = [INIT_FILE, RUN_FILE, CLEAN_FILE]
+        for file in files:
+            src = os.path.join(os.path.dirname(os.path.realpath(__file__)), file)
+            dst = os.path.join(self.working_dir, file)  # script dir is in name
+            shutil.copyfile(src, dst)
 
     def export_cluster_settings(self):
         """
@@ -304,12 +316,12 @@ class ClusterStarter:
         env_file.write(script)
         env_file.close()
         
-        # copy hadoop control scripts
-        files = [INIT_FILE, RUN_FILE, CLEAN_FILE]
-        for file in files:
-            src = os.path.join(os.path.dirname(os.path.realpath(__file__)), file)
-            dst = os.path.join(self.working_dir, file)  # script dir is in name
-            shutil.copyfile(src, dst)
+        # # copy hadoop control scripts
+ #        files = [INIT_FILE, RUN_FILE, CLEAN_FILE]
+ #        for file in files:
+ #            src = os.path.join(os.path.dirname(os.path.realpath(__file__)), file)
+ #            dst = os.path.join(self.working_dir, file)  # script dir is in name
+ #            shutil.copyfile(src, dst)
         
         print "Scripts generated."
         

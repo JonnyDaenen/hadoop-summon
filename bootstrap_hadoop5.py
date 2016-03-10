@@ -7,7 +7,6 @@ import subprocess
 import logging
 import uuid
 import shutil
-import random
 import time
 import signal
 import socket
@@ -26,11 +25,8 @@ WORKING_DIRECTORY = os.path.join(os.getcwd(), "work")
 HADOOP_HOME = os.path.join(os.getcwd(), "work/hadoop-" + VERSION)
 HADOOP_CONF_DIR = os.path.join(HADOOP_HOME, "etc/hadoop")
 
-
-randomname = "hodj-" + str(random.randint(100,10000000))
-
-HDFS_NAMEDIR = "/node_scratch/%s/hdfs/name/"%(randomname)
-HDFS_DATADIR = "/node_scratch/%s/hdfs/data/"%(randomname)
+HDFS_NAMEDIR = "/node_scratch/hdfs/name/"
+HDFS_DATADIR = "/node_scratch/hdfs/data/"
 
 STOP = False
 
@@ -87,20 +83,16 @@ class Hadoop2Bootstrap(object):
             <description>Deprecated. Use (fs.defaultFS) property instead</description>
         </property>
         
-       
-        
         <property>
             <name>fs.defaultFS</name>
             <value>hdfs://%s:9000</value>
         </property>
         
-        <!--
         <property>
             <name>hadoop.tmp.dir</name>
             <value>/node_scratch/hadoop-${user.name}</value>
             <description></description>
         </property>
-        -->
         
         <property>
             <name>io.file.buffer.size</name>
@@ -108,12 +100,7 @@ class Hadoop2Bootstrap(object):
             <description></description>
         </property>
         
-        <property>
-            <name>hadoop.tmp.dir</name>
-            <value>/node_scratch/%s/hadoop-${user.name}</value>
-        </property>
-        
-    </configuration>""" % (hostname, hostname, randomname)
+    </configuration>""" % (hostname, hostname)
 
     def get_core_site_xml_old(self, hostname):
         return """<?xml version="1.0"?>
@@ -140,7 +127,7 @@ class Hadoop2Bootstrap(object):
         </property>
         <property>
             <name>dfs.namenode.checkpoint.dir</name>
-            <value>file:///node_scratch/%s/tmp/namesecondary</value>
+            <value>file:///node_scratch/tmp/namesecondary</value>
             <final>true</final>
         </property>
         <property>
@@ -158,7 +145,7 @@ class Hadoop2Bootstrap(object):
             <value>20</value>
         </property>
         -->
-    </configuration>""" % (HDFS_NAMEDIR, HDFS_DATADIR, randomname)
+    </configuration>""" % (HDFS_NAMEDIR, HDFS_DATADIR)
 
     def get_hdfs_site_xml_old(self, hostname, name_dir):
         return """<?xml version="1.0"?>
@@ -178,7 +165,7 @@ class Hadoop2Bootstrap(object):
          </property-->
           <property>
                <name>dfs.datanode.data.dir</name>
-               <value>/node_scratch/%s/datanode</value>
+               <value>/node_scratch/datanode</value>
          </property>
          <property>
               <name>dfs.datanode.data.dir.perm</name>
@@ -191,7 +178,7 @@ class Hadoop2Bootstrap(object):
              <name>dfs.webhdfs.enabled</name>
              <value>true</value>
          </property>         
-    </configuration>""" % (name_dir,randomname)
+    </configuration>""" % (name_dir)
 
     def get_mapred_site_xml(self, hostname):
         return """<?xml version="1.0"?>
@@ -250,17 +237,6 @@ class Hadoop2Bootstrap(object):
                 <description>percentage of mappers that must be complete before starting the first reducers</description>
             </property>
 
-            <property>
-                <name>mapred.map.tasks.speculative.execution</name>
-                <value>false</value>
-            </property>
-            
-            <property>
-                <name>mapred.reduce.tasks.speculative.execution</name>
-                <value>false</value>
-            </property>
-            
-            
             <!--
             <property>
                 <name>mapreduce.map.sort.spill.percent</name>
@@ -268,12 +244,12 @@ class Hadoop2Bootstrap(object):
             </property>
             -->
             
-            <!--
+            
             <property>
                 <name>mapreduce.task.io.sort.factor</name>
-                <value>64</value>
+                <value>10</value>
             </property>
-            -->
+            
 
             <!--
             <property>
@@ -340,6 +316,8 @@ class Hadoop2Bootstrap(object):
            <value>-Xmx4505m</value>
            <description>??</description>
          </property>
+         
+        
     </configuration>""" % (hostname)
 
     def get_yarn_site_xml(self, hostname):
@@ -352,7 +330,7 @@ class Hadoop2Bootstrap(object):
                 </property>
                 <property>
                     <name>yarn.nodemanager.local-dirs</name>
-                    <value>/node_scratch/%s/tmp/nm-local-dir</value>
+                    <value>/node_scratch/tmp/nm-local-dir</value>
                     <final>true</final>
                     <description>which local disks to store intermediate data on</description>
                 </property>
@@ -404,7 +382,7 @@ class Hadoop2Bootstrap(object):
                 
                 
             </configuration>
-        """ % (hostname, randomname)
+        """ % (hostname)
 
     def get_yarn_site_xml_old(self, hostname):
         return """<?xml version="1.0"?>
@@ -482,15 +460,8 @@ class Hadoop2Bootstrap(object):
         # remotely create directories on each node
         # for the namenode and datanode
         for node in nodes:
-            node = strip(node)
-            if node == socket.gethostname():
-                continue
-            print("cleaning node %s"%(node)) 
-            os.system("ssh %s 'killall java'"%(node))
-            os.system("ssh %s 'rm -rf /tmp/*'"%(node))
-            os.system("ssh %s 'rm -rf /node_scratch/*'"%(node))
-            #os.system("ssh %s -T 'mkdir -p %s'"%(node,HDFS_NAMEDIR))
-            #os.system("ssh %s -T 'mkdir -p %s'"%(node,HDFS_DATADIR))
+            # os.system("ssh %s -T 'mkdir -p %s'"%(node,HDFS_NAMEDIR))
+            # os.system("ssh %s -T 'mkdir -p %s'"%(node,HDFS_DATADIR))
             pass
 
     def write_nodefile(self):
@@ -602,7 +573,7 @@ class Hadoop2Bootstrap(object):
         logging.info("Starting Hadoop")
 
         # if namenode is fresh, format it 
-        if True:# not os.environ.has_key("HADOOP_CONF_DIR") or os.path.exists(os.environ["HADOOP_CONF_DIR"]) == False:
+        if not os.environ.has_key("HADOOP_CONF_DIR") or os.path.exists(os.environ["HADOOP_CONF_DIR"]) == False:
 
             self.set_env()
             # format_command = os.path.join(HADOOP_HOME, "bin/hadoop") + " --config " + self.job_conf_dir + " namenode -format"
@@ -737,7 +708,6 @@ if __name__ == "__main__":
     # execute command on this hadoop instance
     hadoop = Hadoop2Bootstrap(WORKING_DIRECTORY)
     if options.start:
-        hadoop.stop_hadoop()
         hadoop.start()
     else:
         hadoop.stop()
