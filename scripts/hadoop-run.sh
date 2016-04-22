@@ -2,7 +2,6 @@
 
 # this auto-script is supposed to be run on the master node
 
-
 # load env vars 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $SCRIPTDIR/hadoop-env.sh

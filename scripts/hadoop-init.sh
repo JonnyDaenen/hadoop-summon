@@ -9,6 +9,7 @@ source $SCRIPTDIR/hadoop-env.sh
 hadoop dfsadmin -report
 
 # create user
+hadoop fs -rm -r /user/$HADOOP_USERNAME
 hadoop fs -mkdir -p /user/$HADOOP_USERNAME
 
 # open new shell
